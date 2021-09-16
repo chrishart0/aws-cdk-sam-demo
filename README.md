@@ -3,6 +3,8 @@
 
 This repo shows how to locally test a Lambda function created with AWS CDK using AWS SAM. 
 
+![how local testing works gif](static_content/sam-cdk-demo.gif)
+
 ## First setup your local environment
 
 Ensure [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) and [AWS SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) are installed. 
@@ -39,6 +41,12 @@ $ cdk synth
 ```
 
 ## To test the provided code with SAM locally follow these steps
+
+Activate your virtualenv.
+
+```
+$ source .venv/bin/activate
+```
 
 Synthesize a template and write it to template.yaml
 

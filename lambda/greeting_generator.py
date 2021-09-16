@@ -17,5 +17,5 @@ def handler(event, context):
         'headers': {
             'Content-Type': 'text/plain'
         },
-        'body': random.choice(greetings)
+        'body': random.choice(greetings) + "\n"
     }

@@ -1,0 +1,374 @@
+Resources:
+  greetinghandlerServiceRole9BD8B246:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_handler/ServiceRole/Resource
+  greetinghandler6F2FF3D1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParameters82b22d8ada39d7ef040fa86959c38994a8087cf592a8199b6e02d95338f8260bS3Bucket3D69A400
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters82b22d8ada39d7ef040fa86959c38994a8087cf592a8199b6e02d95338f8260bS3VersionKeyDAE4B764
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters82b22d8ada39d7ef040fa86959c38994a8087cf592a8199b6e02d95338f8260bS3VersionKeyDAE4B764
+      Role:
+        Fn::GetAtt:
+          - greetinghandlerServiceRole9BD8B246
+          - Arn
+      Handler: greeting_generator.handler
+      Runtime: python3.9
+    DependsOn:
+      - greetinghandlerServiceRole9BD8B246
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_handler/Resource
+      aws:asset:path: /home/chart/Git/aws-sam-cdk-demo/lambda
+      aws:asset:property: Code
+  greetingendpoint8A1A1D2A:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Description: Greeting API endpoint
+      Name: greeting_endpoint
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/Resource
+  greetingendpointCloudWatchRole452C39E8:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/CloudWatchRole/Resource
+  greetingendpointAccount2DD41370:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+          - greetingendpointCloudWatchRole452C39E8
+          - Arn
+    DependsOn:
+      - greetingendpoint8A1A1D2A
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/Account
+  greetingendpointDeployment0587474725843f222a9e6aeb4746cd4710edb394:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: greetingendpoint8A1A1D2A
+      Description: Automatically created by the RestApi construct
+    DependsOn:
+      - greetingendpointproxyANYC702BFDA
+      - greetingendpointproxy5205B2E6
+      - greetingendpointANY700B359E
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/Deployment/Resource
+  greetingendpointDeploymentStageprod3AF2C352:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId:
+        Ref: greetingendpoint8A1A1D2A
+      DeploymentId:
+        Ref: greetingendpointDeployment0587474725843f222a9e6aeb4746cd4710edb394
+      StageName: prod
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/DeploymentStage.prod/Resource
+  greetingendpointproxy5205B2E6:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+          - greetingendpoint8A1A1D2A
+          - RootResourceId
+      PathPart: "{proxy+}"
+      RestApiId:
+        Ref: greetingendpoint8A1A1D2A
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/Default/{proxy+}/Resource
+  greetingendpointproxyANYApiPermissionAwsSamCdkDemoStackgreetingendpoint3C4C90BDANYproxy6355188D:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - greetinghandler6F2FF3D1
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: greetingendpoint8A1A1D2A
+            - /
+            - Ref: greetingendpointDeploymentStageprod3AF2C352
+            - /*/*
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/Default/{proxy+}/ANY/ApiPermission.AwsSamCdkDemoStackgreetingendpoint3C4C90BD.ANY..{proxy+}
+  greetingendpointproxyANYApiPermissionTestAwsSamCdkDemoStackgreetingendpoint3C4C90BDANYproxyED9C4DD6:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - greetinghandler6F2FF3D1
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: greetingendpoint8A1A1D2A
+            - /test-invoke-stage/*/*
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/Default/{proxy+}/ANY/ApiPermission.Test.AwsSamCdkDemoStackgreetingendpoint3C4C90BD.ANY..{proxy+}
+  greetingendpointproxyANYC702BFDA:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Ref: greetingendpointproxy5205B2E6
+      RestApiId:
+        Ref: greetingendpoint8A1A1D2A
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - greetinghandler6F2FF3D1
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/Default/{proxy+}/ANY/Resource
+  greetingendpointANYApiPermissionAwsSamCdkDemoStackgreetingendpoint3C4C90BDANY8EECFA65:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - greetinghandler6F2FF3D1
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: greetingendpoint8A1A1D2A
+            - /
+            - Ref: greetingendpointDeploymentStageprod3AF2C352
+            - /*/
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/Default/ANY/ApiPermission.AwsSamCdkDemoStackgreetingendpoint3C4C90BD.ANY..
+  greetingendpointANYApiPermissionTestAwsSamCdkDemoStackgreetingendpoint3C4C90BDANY5F7A2E38:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - greetinghandler6F2FF3D1
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: greetingendpoint8A1A1D2A
+            - /test-invoke-stage/*/
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/Default/ANY/ApiPermission.Test.AwsSamCdkDemoStackgreetingendpoint3C4C90BD.ANY..
+  greetingendpointANY700B359E:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Fn::GetAtt:
+          - greetingendpoint8A1A1D2A
+          - RootResourceId
+      RestApiId:
+        Ref: greetingendpoint8A1A1D2A
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - greetinghandler6F2FF3D1
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/greeting_endpoint/Default/ANY/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/02PwU7DMAyGn2X3NGObOHCjG+IEoipPYFJTQpukih2NKuq7k6QM9eTPv2z/vw/ycDzKu90jXKlS3bCPynmU8Z1BDaImQk7Ya9uLi7PEPigWl0/bgAeDjD43b4GnUOQWyQWvMHOa7zRrZxeRj8cRzEcHMj4Hq7KcZ7bcoDeaqCxoMDK2biyHcl0EnSrIcUiWVKmX56AG5DMQCph0D4xXmGV8KUYpCteT/kt1w1opFyyLJ5xGNxu0Jfamy98W1xVuDxWTxrufefviP78if7kuSystyyKaOZHdn+SDvN99k9aVT87aoGzX+gu6/4nOfAEAAA==
+    Metadata:
+      aws:cdk:path: AwsSamCdkDemoStack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Parameters:
+  AssetParameters82b22d8ada39d7ef040fa86959c38994a8087cf592a8199b6e02d95338f8260bS3Bucket3D69A400:
+    Type: String
+    Description: S3 bucket for asset "82b22d8ada39d7ef040fa86959c38994a8087cf592a8199b6e02d95338f8260b"
+  AssetParameters82b22d8ada39d7ef040fa86959c38994a8087cf592a8199b6e02d95338f8260bS3VersionKeyDAE4B764:
+    Type: String
+    Description: S3 key for asset version "82b22d8ada39d7ef040fa86959c38994a8087cf592a8199b6e02d95338f8260b"
+  AssetParameters82b22d8ada39d7ef040fa86959c38994a8087cf592a8199b6e02d95338f8260bArtifactHash4007B164:
+    Type: String
+    Description: Artifact hash for asset "82b22d8ada39d7ef040fa86959c38994a8087cf592a8199b6e02d95338f8260b"
+Outputs:
+  greetingendpointEndpointBEEE9C2C:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: greetingendpoint8A1A1D2A
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: greetingendpointDeploymentStageprod3AF2C352
+          - /
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - af-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-2
+

@@ -1,5 +1,5 @@
 
-# Welcome to this example CDK project using sam to test Lambda locally!
+# Learn how to use SAM to test Lambda locally for a CDK project!
 
 This repo shows how to locally test a Lambda function created with AWS CDK using AWS SAM. 
 
